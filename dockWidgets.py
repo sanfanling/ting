@@ -5,14 +5,55 @@
 
 import os, sys, re
 from track import track
-from PyQt6.QtWidgets import *
-from PyQt6.QtCore import *
-from PyQt6.QtGui import *
+
+from PyQt6.QtCore import (
+    QUrl,
+    Qt,
+    QVariant,
+    QDir
+)
+from PyQt6.QtWidgets import (
+    QApplication,
+    QFileDialog,
+    QMessageBox,
+    QMenuBar,
+    QFileDialog,
+    QWidget,
+    QVBoxLayout,
+    QPlainTextEdit,
+    QDockWidget,
+    QToolBar,
+    QLabel,
+    QHBoxLayout,
+    QLineEdit,
+    QAbstractItemView,
+    QTableView,
+    QListView,
+    QMenu,
+    QInputDialog
+)
+
+
+from PyQt6.QtGui import (
+    QIcon,
+    QKeySequence,
+    QPixmap,
+    QAction,
+    QTextCursor,
+    QStandardItemModel,
+    QStandardItem,
+    QFileSystemModel
+)
+# from PyQt6.QtWidgets import *
+# from PyQt6.QtCore import *
+# from PyQt6.QtGui import *
 from lrcShowX.lrcShowX import lrcShowX
 from mutagen.flac import FLAC, Picture
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3, APIC, error
+from pathlib import Path
 
+basedir = Path(__file__).resolve().parent.as_posix()
 
 class lrcShowxDock(QDockWidget):
 
@@ -235,20 +276,32 @@ class albumCoverWidget(QLabel):
             pass
 
     def setBlankCover(self):
-        pix = QPixmap("icon/blankAlbum.png").scaled(270, 270)
+        pix = QPixmap(os.path.join(basedir, "icon/blankAlbum.png")).scaled(270, 270)
         self.setPixmap(pix)
 
     def searchMedia(self):
         f = self.parent.parent.currentTrack.trackFile
-        audio = FLAC(f)
-        if audio.pictures:
-            p = audio.pictures[0]
-            pix = QPixmap()
-            pix.loadFromData(p.data)
-            pix = pix.scaled(270, 270)
-            self.setPixmap(pix)
-        else:
-            self.searchOnline()
+        
+        if Path(f).suffix.lower() == ".mp3":
+            audio = MP3(f, ID3=ID3)
+            for tag in audio.tags.values():
+                if isinstance(tag, APIC) and tag.type == 3:
+                    pix = QPixmap()
+                    pix.loadFromData(tag.data)
+                    pix = pix.scaled(270, 270)
+                    self.setPixmap(pix)
+                else:
+                    self.searchOnline()
+        elif Path(f).suffix.lower() == ".flac":  
+            audio = FLAC(f)
+            if audio.pictures:
+                p = audio.pictures[0]
+                pix = QPixmap()
+                pix.loadFromData(p.data)
+                pix = pix.scaled(270, 270)
+                self.setPixmap(pix)
+            else:
+                self.searchOnline()
 
     def searchOnline(self):
         pass
@@ -446,7 +499,7 @@ class playlistWidget(QWidget):
     def savePlaylistAction_(self):
         if self.parent.parent.parameter.currentPlaylistName:
             t = "\n".join(self.parent.parent.playlistTmp) + "\n"
-            with open(self.parent.parent.parameter.currentPlaylistName, "w") as f:
+            with open(self.parent.parent.parameter.currentPlaylistName, "w", encoding="utf-8") as f:
                 f.write(t)
         else:
             self.saveasPlayListAction_()

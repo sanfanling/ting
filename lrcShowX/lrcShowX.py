@@ -137,6 +137,7 @@ class lrcShowX(QTextBrowser):
 
                 p = lrcParser(fi, True)
                 self.lrcInstance = p.parse()
+                # print(self.lrcInstance.lrcWithTag)
                 self.showLrc()
                 self.forwardAction.setEnabled(True)
                 self.backwardAction.setEnabled(True)
@@ -402,6 +403,7 @@ class lrcShowX(QTextBrowser):
 
     def showLrc(self):
         l = self.formartLrc()
+        # print(l)
         self.setHtml(l)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -420,6 +422,7 @@ class lrcShowX(QTextBrowser):
 
                 context += t
             co = nullLines + context + 50 * j + '<p align="center">&nbsp;</p>'
+            # print(co)
             return co
 
     def initFont(self):

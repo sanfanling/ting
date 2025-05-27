@@ -9,20 +9,17 @@
 ### Run:
 * Navigate to source dir in console and type: `python xting.py` in console to run the application
 * or directly click `xting.py` to run
+* another way would be to install the executable from the releases tag
 
-### Author:
-* sanfanling (xujia19@outlook.com)
+### Authors:
+* sanfanling (xujia19@outlook.com) (the original author)
+* putridambassador121 (the maintainer of this fork)
 
 ### Note:
-* Developed in Linux environment, but could run in windows system theoretically, never tested, welcome report.
+* Originally developed in the Linux environment by the original author, now it runs on Windows 10 and is being developed by me there.
 
 ### Next todo list:
-* [x] finish all lrcShow-X context menu function
-* [x] finish album cover function
-* [x] finish play list function
-* [x] finish shortcuts function
-* [x] add shortcuts config page
-* [x] finish lrc edit function
-* [x] icons
-* [x] edit track tags
-* [] bug fix
+* [x] make it search for cover art on the file itself (as of this version, only mp3 and flac are supported for this functionality, more are planned)
+* [] make it search for cover art online if the cover is not available on the file
+* [] add a sound driver watcher on the gui (make it detect automatically if a sound device like a headphone got disconnected, without needing to restart the app just to use it)
+

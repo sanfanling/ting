@@ -4,26 +4,109 @@
 
 
 import os, sys, glob, mutagen, random
-from PyQt6.QtWidgets import *
-from PyQt6.QtCore import *
-from PyQt6.QtGui import *
-from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput, QMediaMetaData, QMediaDevices
+import traceback
 
+from PyQt6.QtCore import (
+    QTimer,
+    QUrl,
+    QObject,
+    pyqtSignal,
+    QRunnable,
+    pyqtSlot,
+    QThreadPool
+    
+)
+from PyQt6.QtWidgets import (
+    QApplication,
+    QSystemTrayIcon,
+    QFileDialog,
+    QMessageBox
+    
+)
+from PyQt6.QtGui import (
+    QIcon,
+    QKeySequence,
+    QPixmap,
+    QFont  
+)
+
+from dockWidgets import albumCoverWidget
+
+# from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput, QMediaMetaData, QMediaDevices
+from pathlib import Path
 from configuration import configuration
 from windowUI import windowUI
 from engine import engine
 
+
 from track import track
 
+base_dir = Path(__file__).resolve().parent.as_posix()
 
+class WorkerSignals(QObject):
+    """Signals from a running worker thread.
+
+    finished
+        No data
+
+    error
+        tuple (exctype, value, traceback.format_exc())
+
+    result
+        object data returned from processing, anything
+
+    progress
+        float indicating % progress
+    """
+
+    finished = pyqtSignal()
+    error = pyqtSignal(tuple)
+    result = pyqtSignal(object)
+    progress = pyqtSignal(float)
+
+class Worker(QRunnable):
+    """Worker thread.
+
+    Inherits from QRunnable to handler worker thread setup, signals and wrap-up.
+
+    :param callback: The function callback to run on this worker thread.
+                     Supplied args and
+                     kwargs will be passed through to the runner.
+    :type callback: function
+    :param args: Arguments to pass to the callback function
+    :param kwargs: Keywords to pass to the callback function
+    """
+
+    def __init__(self, fn, *args, **kwargs):
+        super().__init__()
+        self.fn = fn
+        self.args = args
+        self.kwargs = kwargs
+        self.signals = WorkerSignals()
+        # Add the callback to our kwargs
+        # self.kwargs["progress_callback"] = self.signals.progress
+
+    @pyqtSlot()
+    def run(self):
+        try:
+            result = self.fn(*self.args, **self.kwargs)
+        except Exception:
+            traceback.print_exc()
+            exctype, value = sys.exc_info()[:2]
+            self.signals.error.emit((exctype, value, traceback.format_exc()))
+        else:
+            self.signals.result.emit(result)
+        finally:
+            self.signals.finished.emit()
 
 class mainWindow(windowUI):
 
     def __init__(self, devices):
         super().__init__(devices)
 
+        self.threadpool = QThreadPool()
         self.setWindowTitle("xting")
-        self.setWindowIcon(QIcon("icon/logo.png"))
+        self.setWindowIcon(QIcon(Path(os.path.join(base_dir, "icon/logo.png")).as_posix()))
         self.timer = QTimer()
 
         self.musicEngine = engine()
@@ -40,22 +123,27 @@ class mainWindow(windowUI):
 
         self.setShortcuts()
 
+        path = Path(os.path.join(self.parameter.privatePath, "current.txt")).as_posix()
         if not self.parameter.currentPlaylistName:
-            path = os.path.join(self.parameter.privatePath, "current.txt")
+            path = Path(os.path.join(self.parameter.privatePath, "current.txt")).as_posix()
             if os.path.exists(path):
-                with open(path, "r") as f:
+                with open(path, "r", encoding="utf-8") as f:
+                # self.threadpool.start(worker)
                     self.playlistTmp = list(map(lambda x: x.strip(), f.readlines()))
                     self.playlistTmp = list(filter(lambda x: os.path.exists(x), self.playlistTmp))
                 self.addToPlaylist(self.playlistTmp)
             else:
                 self.playlistTmp = []
         else:
-            with open(self.parameter.currentPlaylistName, "r") as f:
-                self.playlistTmp = list(map(lambda x: x.strip(), f.readlines()))
-                self.playlistTmp = list(filter(lambda x: os.path.exists(x), self.playlistTmp))
-            self.addToPlaylist(self.playlistTmp)
-
-        self.systemTray = QSystemTrayIcon(QIcon("icon/logo.png"), self)
+            # self.threadpool.start(worker)
+            try:
+                with open(self.parameter.currentPlaylistName, "r", encoding="utf-8") as f:
+                    self.playlistTmp = list(map(lambda x: x.strip(), f.readlines()))
+                    self.playlistTmp = list(filter(lambda x: os.path.exists(x), self.playlistTmp))
+                self.addToPlaylist(self.playlistTmp)
+            except FileNotFoundError:
+                open(self.parameter.currentPlaylistName, "x").close()
+        self.systemTray = QSystemTrayIcon(QIcon(Path(os.path.join(base_dir, "icon/logo.png")).as_posix()), self)
         self.systemTray.setContextMenu(self.trayContextMenu)
         self.systemTray.setVisible(self.parameter.trayIcon)
 
@@ -81,8 +169,10 @@ class mainWindow(windowUI):
                 break
             else:
                 k += 1
-        exec(f"self.device{k}Action.setChecked(True)")
-
+        try:
+            exec(f"self.device{k}Action.setChecked(True)")
+        except AttributeError:
+            pass
         self.musicEngine.setVolume(0.8)
         self.centralWidget.volumeSlider.setValue(8)
 
@@ -129,6 +219,14 @@ class mainWindow(windowUI):
         self.aboutAppAction.triggered.connect(self.aboutAppAction_)
         self.aboutQtAction.triggered.connect(QApplication.aboutQt)
         self.quitAction.triggered.connect(self.quit_)
+
+    def addFileAlbum(self, file: str):
+        album = albumCoverWidget(self)
+        
+        
+
+
+        
 
     def restoreWidgetState(self):
         try:
@@ -179,7 +277,7 @@ class mainWindow(windowUI):
             self.playorpauseAction.setEnabled(True)
             self.playorpauseAction.setText(self.tr("Play"))
             self.centralWidget.playorpauseButton.setEnabled(True)
-            self.centralWidget.playorpauseButton.setIcon(QIcon("icon/play.png"))
+            self.centralWidget.playorpauseButton.setIcon(QIcon(os.path.join(base_dir, "icon/play.png")))
             self.stopAction.setEnabled(False)
             self.centralWidget.stopButton.setEnabled(False)
             self.previousAction.setEnabled(False)
@@ -195,7 +293,7 @@ class mainWindow(windowUI):
 
         elif status == 1:
             self.playorpauseAction.setText(self.tr("Pause"))
-            self.centralWidget.playorpauseButton.setIcon(QIcon("icon/pause.png"))
+            self.centralWidget.playorpauseButton.setIcon(QIcon(os.path.join(base_dir, "icon/pause.png")))
             self.playorpauseAction.setEnabled(True)
             self.centralWidget.playorpauseButton.setEnabled(True)
             self.stopAction.setEnabled(True)
@@ -207,7 +305,7 @@ class mainWindow(windowUI):
 
         elif status == 2:
             self.playorpauseAction.setText(self.tr("Play"))
-            self.centralWidget.playorpauseButton.setIcon(QIcon("icon/play.png"))
+            self.centralWidget.playorpauseButton.setIcon(QIcon(os.path.join(base_dir, "icon/play.png")))
 
     def addHistoryAction(self):
         if self.addToPlayHistory:
@@ -306,11 +404,11 @@ class mainWindow(windowUI):
     def showTrayInformation(self, v):
         if self.parameter.trayIcon and self.parameter.trayInfo:
             if v == 1:
-                self.systemTray.showMessage(self.tr("Status changed"), f"Now playing: {self.currentTrack.trackTitle} by {self.currentTrack.trackArtist}", QIcon("icon/logo.png"), 6000)
+                self.systemTray.showMessage(self.tr("Status changed"), f"Now playing: {self.currentTrack.trackTitle} by {self.currentTrack.trackArtist}", QIcon(Path(os.path.join(base_dir, "icon/logo.png")).as_posix()), 6000)
             elif v == 2:
-                self.systemTray.showMessage(self.tr("Status changed"), f"Paused: {self.currentTrack.trackTitle} by {self.currentTrack.trackArtist}", QIcon("icon/logo.png"), 6000)
+                self.systemTray.showMessage(self.tr("Status changed"), f"Paused: {self.currentTrack.trackTitle} by {self.currentTrack.trackArtist}", QIcon(Path(os.path.join(base_dir, "icon/logo.png")).as_posix()), 6000)
             else:
-                self.systemTray.showMessage(self.tr("Status changed"), "Stopped", QIcon("icon/logo.png"), 6000)
+                self.systemTray.showMessage(self.tr("Status changed"), "Stopped", QIcon(Path(os.path.join(base_dir, "icon/logo.png")).as_posix()), 6000)
 
     def openFileAction_(self):
         url, fil = QFileDialog.getOpenFileUrl(None, self.tr("choose a music file"), QUrl.fromLocalFile(self.parameter.collectionPath), "music files (*.mp3 *.flac *.ogg *.m4a)")
@@ -368,6 +466,12 @@ class mainWindow(windowUI):
         self.centralWidget.lengthLabel.setText(self.formatTrackLength(t))
         self.centralWidget.progressSlider.setValue(self.musicEngine.getPosition())
         self.centralWidget.timeLabel.setText(self.formatTrackLength(self.musicEngine.getPosition()))
+        
+        worker = Worker(
+            self.albumCoverDock.albumCoverWidget.searchMedia
+        )
+        self.threadpool.start(worker)
+        # self.albumCoverDock.albumCoverWidget.searchMedia()
         self.musicEngine.play()
 
 
@@ -427,7 +531,7 @@ class mainWindow(windowUI):
 
     def aboutAppAction_(self):
         b = QMessageBox(self)
-        b.setIconPixmap(QPixmap('icon/logo.png'))
+        b.setIconPixmap(QPixmap(Path(os.path.join(base_dir, "icon/logo.png")).as_posix()))
         b.setWindowTitle(self.tr(f'About {QApplication.arguments()[0]}'))
         b.setText(f'Application: {QApplication.arguments()[0]}\n\nVersion: {QApplication.arguments()[1]}\n\nShort description: xting is a personal local music application, not special. Synced lyrics display is interesting\n\nAuthors: {QApplication.arguments()[2]}\n\nLicense: {QApplication.arguments()[3]}\n\nWebsite: {QApplication.arguments()[4]}')
         b.exec()

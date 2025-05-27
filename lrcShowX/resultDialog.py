@@ -70,7 +70,7 @@ class resultDisplay(QDialog):
 
 class multiLocalLrc(QDialog):
 
-    def __init__(self, parent):
+    def __init__(self):
         super().__init__()
         self.rstl = QListWidget(self)
         self.rstl.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)

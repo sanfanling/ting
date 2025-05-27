@@ -4,6 +4,8 @@
 
 
 import os, re
+import html
+from pathlib import Path
 
 class lrcParser:
 
@@ -21,11 +23,12 @@ class lrcParser:
 
     def parse(self):
         if not self.isFile:
-            lineList = self.lrcfile.split("\n")
+            lineList = self.lrcfile.replace("\\n", "\n").split("\n")
         else:
-            with open(self.lrcfile, "r") as f:
+            with open(self.lrcfile, "r", encoding="utf-8") as f:
                 lineList = f.readlines()
-        lineList = list(map(lambda x: x.strip().replace("<br />", ""), lineList))
+        
+        lineList = list(map(lambda x: html.unescape(x.strip().replace("<br />", "")), lineList))
         self.syncedLyrics.lrcWithTag = "\n".join(lineList)
 
         offset = 0
@@ -82,7 +85,12 @@ class syncedLyrics:
         self.offset = 0
 
 if __name__ == "__main__":
-    p = lrcParser("b.lrc")
+    base_dir = base_dir = Path(__file__).resolve().parent.as_posix()
+    lrc = Path(Path(base_dir) / "b.lrc").as_posix()
+    
+    # p = lrcParser("b.lrc")
+    p = lrcParser(lrc)
     l = p.parse()
     print(l)
-    print(l[2][1])
+    print(l.lrcFrom)
+    # print(l[2][1])

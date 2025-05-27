@@ -6,9 +6,12 @@ import os, sys
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
-
+from pathlib import Path
 from dockWidgets import *
 from parameterData import parameterData
+
+base_dir = Path(__file__).resolve().parent.as_posix()
+# print(base_dir)
 
 class windowUI(QMainWindow):
 
@@ -35,23 +38,23 @@ class windowUI(QMainWindow):
 
     def initMenuBar(self):
         self.fileMenu = self.menuBar().addMenu(self.tr("File"))
-        self.openFileAction = QAction(QIcon("icon/open.png"), self.tr("Open..."))
-        self.quitAction = QAction(QIcon("icon/quit.png"), self.tr("Quit"))
+        self.openFileAction = QAction(QIcon(Path(Path(base_dir) / "icon/open.png").as_posix()), self.tr("Open..."))
+        self.quitAction = QAction(QIcon(Path(Path(base_dir) / "icon/quit.png").as_posix()), self.tr("Quit"))
         self.quitAction.setObjectName("quit")
         self.fileMenu.addAction(self.openFileAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.quitAction)
 
         self.playbackMenu = self.menuBar().addMenu(self.tr("Playback"))
-        self.previousAction = QAction(QIcon("icon/previous.png"), self.tr("Previous"))
+        self.previousAction = QAction(QIcon(Path(Path(base_dir) / "icon/previous.png").as_posix()), self.tr("Previous"))
         self.previousAction.setEnabled(False)
-        self.playorpauseAction = QAction(QIcon("icon/play.png"), self.tr("Play"))
+        self.playorpauseAction = QAction(QIcon(Path(Path(base_dir) / "icon/play.png").as_posix()), self.tr("Play"))
         self.playorpauseAction.setEnabled(False)
-        self.stopAction = QAction(QIcon("icon/stop.png"), self.tr("Stop"))
+        self.stopAction = QAction(QIcon(Path(Path(base_dir) / "icon/stop.png").as_posix()), self.tr("Stop"))
         self.stopAction.setEnabled(False)
-        self.nextAction = QAction(QIcon("icon/next.png"), self.tr("Next"))
+        self.nextAction = QAction(QIcon(Path(Path(base_dir) / "icon/next.png").as_posix()), self.tr("Next"))
         self.nextAction.setEnabled(False)
-        self.repeatAction = QAction(QIcon("icon/repeat.png"), self.tr("Repeat"))
+        self.repeatAction = QAction(QIcon(Path(Path(base_dir) / "icon/repeat.png").as_posix()), self.tr("Repeat"))
         self.repeatAction.setEnabled(False)
         self.playbackMenu.addAction(self.previousAction)
         self.playbackMenu.addAction(self.playorpauseAction)
@@ -61,11 +64,11 @@ class windowUI(QMainWindow):
 
         self.playlistMenu = self.menuBar().addMenu(self.tr("Playlist"))
         self.loopMenu = self.playlistMenu.addMenu(self.tr("Loop"))
-        self.loopTrackAction = QAction(QIcon("icon/loop track.png"), self.tr("Track"))
+        self.loopTrackAction = QAction(QIcon(Path(Path(base_dir) / "icon/loop track.png").as_posix()), self.tr("Track"))
         self.loopTrackAction.setCheckable(True)
-        self.loopPlaylistAction = QAction(QIcon("icon/loop playlist.png"), self.tr("Playlist"))
+        self.loopPlaylistAction = QAction(QIcon(Path(Path(base_dir) / "icon/loop playlist.png").as_posix()), self.tr("Playlist"))
         self.loopPlaylistAction.setCheckable(True)
-        self.noLoopAction = QAction(QIcon("icon/no loop.png"), self.tr("No loop"))
+        self.noLoopAction = QAction(QIcon(Path(Path(base_dir) / "icon/no loop.png").as_posix()), self.tr("No loop"))
         self.noLoopAction.setCheckable(True)
         self.loopGroup = QActionGroup(self)
         self.loopGroup.addAction(self.loopTrackAction)
@@ -75,11 +78,11 @@ class windowUI(QMainWindow):
         self.loopMenu.addAction(self.loopPlaylistAction)
         self.loopMenu.addAction(self.noLoopAction)
         self.sequenceMenu = self.playlistMenu.addMenu(self.tr("Sequence"))
-        self.sequenceRandomAction = QAction(QIcon("icon/radom.png"), self.tr("Random"))
+        self.sequenceRandomAction = QAction(QIcon(Path(Path(base_dir) / "icon/radom.png").as_posix()), self.tr("Random"))
         self.sequenceRandomAction.setCheckable(True)
-        self.sequenceOrderAction = QAction(QIcon("icon/order.png"), self.tr("Order"))
+        self.sequenceOrderAction = QAction(QIcon(Path(Path(base_dir) / "icon/order.png").as_posix()), self.tr("Order"))
         self.sequenceOrderAction.setCheckable(True)
-        self.sequenceReverseOrderAction = QAction(QIcon("icon/revised.png"), self.tr("Reverse order"))
+        self.sequenceReverseOrderAction = QAction(QIcon(Path(Path(base_dir) / "icon/revised.png").as_posix()), self.tr("Reverse order"))
         self.sequenceReverseOrderAction.setCheckable(True)
         self.sequenceGroup = QActionGroup(self)
         self.sequenceGroup.addAction(self.sequenceOrderAction)
@@ -97,7 +100,7 @@ class windowUI(QMainWindow):
         self.viewMenu.addAction(self.collectionDock.toggleViewAction())
 
         self.audioMenu = self.menuBar().addMenu(self.tr("Audio"))
-        self.deviceMenu = self.audioMenu.addMenu(QIcon("icon/device.png"), self.tr("Device"))
+        self.deviceMenu = self.audioMenu.addMenu(QIcon(Path(Path(base_dir) / "icon/device.png").as_posix()), self.tr("Device"))
         self.deviceGroup = QActionGroup(self)
         n = 0
         for d in self.devices:
@@ -113,12 +116,12 @@ class windowUI(QMainWindow):
         # self.toolsMenu.addAction(self.scanAction)
 
         self.settingMenu = self.menuBar().addMenu(self.tr("Setting"))
-        self.configurationAction = QAction(QIcon("icon/configurate.png"), self.tr("Configurate..."))
+        self.configurationAction = QAction(QIcon(Path(Path(base_dir) / "icon/configurate.png").as_posix()), self.tr("Configurate..."))
         self.settingMenu.addAction(self.configurationAction)
 
         self.helpMenu = self.menuBar().addMenu(self.tr("Help"))
-        self.aboutAppAction = QAction(QIcon("icon/logo.png"), self.tr("About xting..."))
-        self.aboutQtAction = QAction(QIcon("icon/qt.png"), self.tr("About Qt..."))
+        self.aboutAppAction = QAction(QIcon(Path(Path(base_dir) / "icon/logo.png").as_posix()), self.tr("About xting..."))
+        self.aboutQtAction = QAction(QIcon(Path(Path(base_dir) / "icon/qt.png").as_posix()), self.tr("About Qt..."))
         self.helpMenu.addAction(self.aboutAppAction)
         self.helpMenu.addAction(self.aboutQtAction)
 
@@ -171,27 +174,27 @@ class controlWidget(QWidget):
         buttonLayout = QHBoxLayout(None)
         self.previousButton = QPushButton(self)
         self.previousButton.setMinimumSize(50, 50)
-        self.previousButton.setIcon(QIcon("icon/previous.png"))
+        self.previousButton.setIcon(QIcon(Path(Path(base_dir) / "icon/previous.png").as_posix()))
         self.previousButton.setIconSize(QSize(40, 40))
         self.previousButton.setEnabled(False)
         self.playorpauseButton = QPushButton(self)
         self.playorpauseButton.setMinimumSize(50, 50)
-        self.playorpauseButton.setIcon(QIcon("icon/play.png"))
+        self.playorpauseButton.setIcon(QIcon(Path(Path(base_dir) / "icon/play.png").as_posix()))
         self.playorpauseButton.setIconSize(QSize(40, 40))
         self.playorpauseButton.setEnabled(False)
         self.stopButton = QPushButton(self)
         self.stopButton.setMinimumSize(50, 50)
-        self.stopButton.setIcon(QIcon("icon/stop.png"))
+        self.stopButton.setIcon(QIcon(Path(Path(base_dir) / "icon/stop.png").as_posix()))
         self.stopButton.setIconSize(QSize(40, 40))
         self.stopButton.setEnabled(False)
         self.nextButton = QPushButton(self)
         self.nextButton.setMinimumSize(50, 50)
-        self.nextButton.setIcon(QIcon("icon/next.png"))
+        self.nextButton.setIcon(QIcon(Path(Path(base_dir) / "icon/next.png").as_posix()))
         self.nextButton.setIconSize(QSize(40, 40))
         self.nextButton.setEnabled(False)
         self.repeatButton = QPushButton(self)
         self.repeatButton.setMinimumSize(50, 50)
-        self.repeatButton.setIcon(QIcon("icon/repeat.png"))
+        self.repeatButton.setIcon(QIcon(Path(Path(base_dir) / "icon/repeat.png").as_posix()))
         self.repeatButton.setIconSize(QSize(40, 40))
         self.repeatButton.setEnabled(False)
         self.volumeSlider = QSlider(self)

@@ -97,12 +97,12 @@ class track:
             self.trackLength = 0
 
     def loadUnkown(self):
-        self.trackType = "unknow"
+        self.trackType = "unknown"
         self.audio = None
-        self.trackTitle = "unknow"
-        self.trackAlbum = "unknow"
-        self.trackArtist = "unknow"
-        self.trackDate = "unknow"
+        self.trackTitle = "unknown"
+        self.trackAlbum = "unknown"
+        self.trackArtist = "unknown"
+        self.trackDate = "unknown"
         self.trackBitrate = 0
         self.trackSamplerate = 0
         self.trackLength = 0
@@ -113,19 +113,19 @@ class track:
         try:
             self.trackTitle = self.audio["title"][0]
         except:
-            self.trackTitle = "unknow"
+            self.trackTitle = "unknown"
         try:
             self.trackAlbum = self.audio["album"][0]
         except:
-            self.trackAlbum = "unknow"
+            self.trackAlbum = "unknown"
         try:
             self.trackArtist = self.audio["artist"][0]
         except:
-            self.trackArtist = "unknow"
+            self.trackArtist = "unknown"
         try:
             self.trackDate = self.audio["date"][0]
         except:
-            self.trackDate = "unknow"
+            self.trackDate = "unknown"
         try:
             self.trackBitrate = int(self.audio.info.bitrate)
         except:
@@ -143,21 +143,21 @@ class track:
         self.trackType = "mp3"
         self.audio = MP3(self.trackFile)
         try:
-            self.trackTitle = str(self.audio["TIT2"].text[0])
+            self.trackTitle = str(self.audio["TIT2"].text[0])        
         except:
-            self.trackTitle = "unknow"
+            self.trackTitle = "unknown"
         try:
             self.trackAlbum = str(self.audio["TALB"].text[0])
         except:
-            self.trackAlbum = "unknow"
+            self.trackAlbum = "unknown"
         try:
             self.trackArtist = str(self.audio["TPE1"].text[0])
         except:
-            self.trackArtist = "unknow"
+            self.trackArtist = "unknown"
         try:
             self.trackDate = str(self.audio["TDRC"].text[0])
         except:
-            self.trackDate = "unknow"
+            self.trackDate = "unknown"
         try:
             self.trackBitrate = int(self.audio.info.bitrate)
         except:
